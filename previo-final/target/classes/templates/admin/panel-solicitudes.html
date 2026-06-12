@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Solicitudes — Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; }
+
+        /* NAV */
+        nav {
+            background: #b71c1c;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav h1 { font-size: 1.1rem; }
+        nav a { color: white; text-decoration: none; margin-left: 1rem; font-size: .9rem; }
+        nav a:hover { text-decoration: underline; }
+        .logout-btn {
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.4);
+            color: white;
+            padding: .4rem .9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,.3); }
+
+        /* CONTAINER */
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+        h2 { color: #b71c1c; margin-bottom: 1.5rem; font-size: 1.5rem; }
+
+        /* INDICADORES */
+        .indicadores {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .card-stat {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            border-top: 5px solid #ccc;
+        }
+        .card-stat .number {
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .card-stat .label {
+            font-size: .85rem;
+            color: #666;
+            margin-top: .4rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .card-total     { border-top-color: #1565c0; }
+        .card-total .number { color: #1565c0; }
+        .card-pendiente { border-top-color: #e65100; }
+        .card-pendiente .number { color: #e65100; }
+        .card-aprobada  { border-top-color: #2e7d32; }
+        .card-aprobada .number { color: #2e7d32; }
+        .card-rechazada { border-top-color: #c62828; }
+        .card-rechazada .number { color: #c62828; }
+
+        /* TABLA */
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #333;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #b71c1c; }
+        thead th {
+            color: white;
+            padding: .85rem 1rem;
+            text-align: left;
+            font-size: .85rem;
+            font-weight: 600;
+        }
+        tbody tr { border-bottom: 1px solid #f0f0f0; }
+        tbody tr:hover { background: #fafafa; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: .75rem 1rem; font-size: .88rem; color: #444; vertical-align: middle; }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: .3rem .8rem;
+            border-radius: 20px;
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-pendiente { background: #fff3e0; color: #e65100; }
+        .badge-aprobada  { background: #e8f5e9; color: #2e7d32; }
+        .badge-rechazada { background: #ffebee; color: #c62828; }
+        .badge-soporte   { background: #e3f2fd; color: #1565c0; }
+        .badge-acceso    { background: #f3e5f5; color: #6a1b9a; }
+        .badge-info      { background: #e0f2f1; color: #00695c; }
+
+        .empty-msg { text-align: center; padding: 3rem; color: #999; }
+
+        @media (max-width: 768px) {
+            .indicadores { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: .8rem; }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <h1>📊 Panel de Solicitudes — Administrador</h1>
+    <div>
+        <a href="/home">🏠 Inicio</a>
+        <form th:action="@{/logout}" method="post" style="display:inline; margin-left:1rem">
+            <button class="logout-btn" type="submit">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Panel de control — Solicitudes</h2>
+
+    <!-- INDICADORES -->
+    <div class="indicadores">
+        <div class="card-stat card-total">
+            <div class="number" th:text="${total}">0</div>
+            <div class="label">Total</div>
+        </div>
+        <div class="card-stat card-pendiente">
+            <div class="number" th:text="${pendientes}">0</div>
+            <div class="label">Pendientes</div>
+        </div>
+        <div class="card-stat card-aprobada">
+            <div class="number" th:text="${aprobadas}">0</div>
+            <div class="label">Aprobadas</div>
+        </div>
+        <div class="card-stat card-rechazada">
+            <div class="number" th:text="${rechazadas}">0</div>
+            <div class="label">Rechazadas</div>
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrapper">
+        <div class="table-header">
+            📋 Listado completo de solicitudes
+            (<span th:text="${total}">0</span> registros)
+        </div>
+
+        <div th:if="${#lists.isEmpty(solicitudes)}" class="empty-msg">
+            No hay solicitudes registradas aún.
+        </div>
+
+        <table th:if="${!#lists.isEmpty(solicitudes)}">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Solicitante</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Fecha Resolución</th>
+                    <th>Observación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="s : ${solicitudes}">
+                    <td th:text="${s.id}"></td>
+                    <td>
+                        <strong th:text="${s.solicitante.username}"></strong>
+                    </td>
+                    <td>
+                        <span th:switch="${s.tipo.name()}">
+                            <span th:case="'SOPORTE'"     class="badge badge-soporte">SOPORTE</span>
+                            <span th:case="'ACCESO'"      class="badge badge-acceso">ACCESO</span>
+                            <span th:case="'INFORMACION'" class="badge badge-info">INFORMACIÓN</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span th:switch="${s.estado.name()}">
+                            <span th:case="'PENDIENTE'" class="badge badge-pendiente">⏳ PENDIENTE</span>
+                            <span th:case="'APROBADA'"  class="badge badge-aprobada">✅ APROBADA</span>
+                            <span th:case="'RECHAZADA'" class="badge badge-rechazada">❌ RECHAZADA</span>
+                        </span>
+                    </td>
+                    <td th:text="${#temporals.format(s.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${s.fechaResolucion != null} ?
+                        ${#temporals.format(s.fechaResolucion, 'dd/MM/yyyy HH:mm')} : '—'">
+                    </td>
+                    <td th:text="${s.observacion != null and !s.observacion.isEmpty()} ?
+                        ${s.observacion} : '—'">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

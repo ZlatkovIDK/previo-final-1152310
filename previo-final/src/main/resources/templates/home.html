@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio — UFPS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; }
+        nav {
+            background: #7e1a1a;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav h1 { font-size: 1.2rem; }
+        nav a { color: white; text-decoration: none; margin-left: 1rem; font-size: .9rem; }
+        nav a:hover { text-decoration: underline; }
+        .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+        h2 { color: #7e1a1a; margin-bottom: 1.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            border-left: 4px solid #7e1a1a;
+        }
+        .card h3 { color: #7e1a1a; margin-bottom: .5rem; }
+        .card p { color: #666; font-size: .9rem; line-height: 1.6; }
+        .card .endpoints { margin-top: 1rem; }
+        .endpoint {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: .4rem;
+            font-size: .82rem;
+            font-family: monospace;
+        }
+        .method {
+            padding: .2rem .5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: .75rem;
+            min-width: 45px;
+            text-align: center;
+        }
+        .get  { background: #e3f2fd; color: #1565c0; }
+        .post { background: #e8f5e9; color: #2e7d32; }
+        .put  { background: #fff8e1; color: #f57f17; }
+        .admin-card { border-left-color: #d32f2f; }
+        .admin-card h3 { color: #d32f2f; }
+        .badge-admin {
+            display: inline-block;
+            background: #ffebee;
+            color: #c62828;
+            padding: .2rem .6rem;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: bold;
+            margin-left: .5rem;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.4);
+            color: white;
+            padding: .4rem .9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,.3); }
+    </style>
+</head>
+<body>
+<nav>
+    <h1>🎓 UFPS — Examen Final Programación Web</h1>
+    <div>
+        <span sec:authentication="name">usuario</span>
+        <a href="/admin/solicitudes/panel" sec:authorize="hasRole('ADMIN')">📊 Panel Admin</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button class="logout-btn" type="submit">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>Endpoints disponibles</h2>
+    <p style="color:#666; margin-bottom:1.5rem;">
+        Usa Postman o cualquier cliente REST para probar los endpoints. Debes iniciar sesión primero
+        (Spring Security maneja la sesión con cookies).
+    </p>
+
+    <div class="grid">
+        <!-- Módulo 1 -->
+        <div class="card">
+            <h3>📨 Módulo 1 — Mensajes Internos</h3>
+            <p>Mensajería interna entre usuarios registrados.</p>
+            <div class="endpoints">
+                <div class="endpoint"><span class="method post">POST</span>/api/mensajes</div>
+                <div class="endpoint"><span class="method get">GET</span>/api/mensajes/bandeja-entrada</div>
+                <div class="endpoint"><span class="method get">GET</span>/api/mensajes/enviados</div>
+                <div class="endpoint"><span class="method put">PUT</span>/api/mensajes/{id}/leer</div>
+                <div class="endpoint"><span class="method get">GET</span>/api/mensajes/no-leidos/count</div>
+            </div>
+        </div>
+
+        <!-- Módulo 2 -->
+        <div class="card">
+            <h3>📋 Módulo 2 — Solicitudes</h3>
+            <p>Flujo de estados: PENDIENTE → APROBADA / RECHAZADA.</p>
+            <div class="endpoints">
+                <div class="endpoint"><span class="method post">POST</span>/api/solicitudes</div>
+                <div class="endpoint"><span class="method get">GET</span>/api/solicitudes/mis-solicitudes</div>
+                <div class="endpoint"><span class="method get">GET</span>/api/solicitudes <span class="badge-admin">ADMIN</span></div>
+                <div class="endpoint"><span class="method put">PUT</span>/api/solicitudes/{id}/aprobar <span class="badge-admin">ADMIN</span></div>
+                <div class="endpoint"><span class="method put">PUT</span>/api/solicitudes/{id}/rechazar <span class="badge-admin">ADMIN</span></div>
+            </div>
+        </div>
+
+        <!-- Módulo 3 -->
+        <div class="card admin-card" sec:authorize="hasRole('ADMIN')">
+            <h3>📊 Módulo 3 — Panel Visual <span class="badge-admin">ADMIN</span></h3>
+            <p>Visualización del estado de solicitudes con indicadores y tabla.</p>
+            <div class="endpoints">
+                <div class="endpoint"><span class="method get">GET</span>/admin/solicitudes/panel</div>
+            </div>
+            <div style="margin-top:1rem">
+                <a href="/admin/solicitudes/panel"
+                   style="background:#d32f2f;color:white;padding:.5rem 1rem;border-radius:6px;
+                          text-decoration:none;font-size:.85rem;">
+                    → Abrir Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- Pruebas -->
+        <div class="card" style="border-left-color:#6a1b9a">
+            <h3 style="color:#6a1b9a">🧪 Módulos 4 y 5 — Tests</h3>
+            <p>Ejecutar desde terminal:</p>
+            <div style="margin-top:.8rem; background:#f5f5f5; padding:.8rem; border-radius:6px; font-family:monospace; font-size:.82rem; line-height:1.8;">
+                ./mvnw test -Dtest=MensajeControllerTest<br>
+                ./mvnw test -Dtest=SolicitudSecurityTest<br>
+                ./mvnw test
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
